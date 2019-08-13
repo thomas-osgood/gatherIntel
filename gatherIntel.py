@@ -45,7 +45,7 @@ common_ports = {
         "ftp_ssl2" : 990
         }
 
-targets = ['127.0.0.1', '10.0.0.1', '10.0.0.200', '10.0.0.4']
+targets = ['127.0.0.1']
 target = '127.0.0.1'
 
 def addScan():
