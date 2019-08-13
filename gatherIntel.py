@@ -45,7 +45,7 @@ common_ports = {
         "ftp_ssl2" : 990
         }
 
-targets = ['127.0.0.1']
+targets = ['127.0.0.1', '10.0.0.1', '10.0.0.7', '10.0.0.200']
 target = '127.0.0.1'
 
 def addScan():
@@ -93,31 +93,83 @@ def scanCommon(tgt):
         None
     """
     global common_ports
+    
+    ttype = tgtType(tgt)
+    print(tgt)
+
     nm = nmap.PortScanner()
 
-    tgtOS = "Unknown"
 
-    print("\nBeginning NMAP Scan Of {0}\n".format(tgt))
+    if(ttype == "STRING"):
+        tgtOS = "Unknown"
+        print("\nBeginning NMAP Scan Of {0}\n".format(tgt))
 
-    print("{0:^10}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
-    print('-'*36)
+        print("{0:^10}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
+        print('-'*36)
 
-    for key, val in common_ports.items():
-        print("{0:10}|{1:^8}|".format(key.upper(),val),end='')
-        try:
-            scan = nm.scan(tgt, str(val), arguments='-O')
-            sc_obj = scan['scan'][tgt]
-            print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
+        for key, val in common_ports.items():
+            print("{0:10}|{1:^8}|".format(key.upper(),val),end='')
+            try:
+                scan = nm.scan(tgt, str(val), arguments='-O')
+                sc_obj = scan['scan'][tgt]
+
+                """
+                Check if the host is up before continuing with the output.
+                Currently this is not working and just throwing an exception.
+                """
+                if(sc_obj['status']['state'] != "up"):
+                    print("[!] {0} is DOWN... Returning...".format(tgt))
+                    return
+
+                print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
+                print('-'*36)
+                if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
+                    try:
+                        tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
+                    except:
+                        tgtOS = "Unknown"
+            except Exception as e:
+                print("Something went wrong < {0} >".format(e))
+        
+        print("\nTarget Operating System : {0}".format(tgtOS))
+        return
+    elif((ttype == "LIST") or (ttype == "TUPLE")):
+        for t in tgt:
+            tgtOS = "Unknown"
+            print("\nBeginning NMAP Scan Of {0}\n".format(t))
+
+            print("{0:^10}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
             print('-'*36)
-            if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
+
+            for key, val in common_ports.items():
+                print("{0:10}|{1:^8}|".format(key.upper(),val),end='')
                 try:
-                    tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
-                except:
-                    tgtOS = "Unknown"
-        except Exception as e:
-            print("Something went wrong < {0} >".format(e))
-    
-    print("\nTarget Operating System : {0}".format(tgtOS))
+                    scan = nm.scan(t, str(val), arguments='-O')
+                    sc_obj = scan['scan'][t]
+                    
+                    """
+                    Check if the host is up before continuing with the output.
+                    Currently this is not working and just throwing an exception.
+                    """
+                    if(not(sc_obj['status']['state'] == "up")):
+                        print("[!] {0} is DOWN... Returning...".format(t))
+                        continue
+
+                    print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
+                    print('-'*36)
+                    if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
+                        try:
+                            tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
+                        except:
+                            tgtOS = "Unknown"
+                except Exception as e:
+                    print("Something went wrong < {0} >".format(e))
+            
+            print("\nTarget Operating System : {0}".format(tgtOS))
+        return
+    else:
+        print("[!] INVALID TARGET TYPE")
+
     return
 
 def tgtType(tgt):
@@ -160,7 +212,8 @@ def main():
     """
     global targets
 
-    scanCommon(targets[0])
+    #scanCommon(targets[0:2])
+    scanCommon(('10.0.0.201','127.0.0.1'))
 
     conn = baseConnect()
     if(conn == "FAILED"):
