@@ -45,7 +45,7 @@ common_ports = {
         "ftp_ssl2" : 990
         }
 
-targets = ['127.0.0.1', '10.0.0.1', '10.0.0.7', '10.0.0.200']
+targets = ['127.0.0.1', '10.0.0.1']
 target = '127.0.0.1'
 
 def addScan():
@@ -212,8 +212,7 @@ def main():
     """
     global targets
 
-    #scanCommon(targets[0:2])
-    scanCommon(('10.0.0.201','127.0.0.1'))
+    scanCommon(targets[0:2]) 
 
     conn = baseConnect()
     if(conn == "FAILED"):
