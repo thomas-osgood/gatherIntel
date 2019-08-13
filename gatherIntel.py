@@ -107,7 +107,6 @@ def scanCommon(tgt):
         try:
             scan = nm.scan(tgt, str(val), arguments='-O')
             sc_obj = scan['scan'][tgt]
-            #print("Status : {0}".format(sc_obj['tcp'][val]['state']))
             print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
             print('-'*36)
             if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
