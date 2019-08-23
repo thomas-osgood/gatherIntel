@@ -16,6 +16,7 @@ Note:
 import nmap
 import sqlite3
 import sys
+import time
 
 common_ports = {
         "http1" : 80,
@@ -42,22 +43,39 @@ common_ports = {
         "https" : 443,
         "ldaps" : 636,
         "ftp_ssl1" : 989,
-        "ftp_ssl2" : 990
+        "ftp_ssl2" : 990,
+        "nfs_lm" : 4045,
+        "nfs_client" : 1110,
+        "nfs_server1" : 111,
+        "nfs_server2" : 2049
         }
 
-targets = ['127.0.0.1', '10.0.0.1']
+targets = ['127.0.0.1']
 target = '127.0.0.1'
 
-def addScan():
+def addScan(conn,tgt,openPorts):
     """
     Function Name: addScan
     Description:
         Add a new scan to the scan database.
     Input(s):
-        None
+        conn - database connection. SQLite3 connection object
+        tgt - target to add to db (ex: 127.0.0.1). String.
+        openPorts - List of DICTs containing target's open ports.
     Return(s):
         None
     """
+    tbl = "scans"
+    opType = tgtType(openPorts)
+    if(len(openPorts) == 0):
+        openPorts = "NONE"
+
+    if(checkTable(conn,tbl) == False):
+        print("Database Table < {0} > Does Not Exist".format(tbl.upper()))
+        return
+
+    timestamp = time.strftime("%Y-%m-%d @ %H:%M:%S GMT", time.gmtime())
+    sql = ""
     return
 
 def baseConnect():
@@ -81,6 +99,28 @@ def baseConnect():
 
     return conn
 
+def checkTable(conn,tbl):
+    """
+    Function Name: checkTable
+    Description:
+        Function to see if database table exists.
+    Input(s):
+        conn - db connection object.
+        tbl - Table to chceck. String.
+    Return(s):
+        True - database table exists.
+        False - database table doesn't exist.
+    """
+    sql = "SELECT name FROM sqlite_master WHERE name = '{0}'".format(tbl)
+    
+    cur = conn.cursor()
+    cur.execute(sql)
+
+    if(cur.fetchone() is None):
+        return False
+
+    return True
+
 def scanCommon(tgt):
     """
     Function Name: scanCommon
@@ -99,16 +139,18 @@ def scanCommon(tgt):
 
     nm = nmap.PortScanner()
 
+    openPorts = []
+
 
     if(ttype == "STRING"):
         tgtOS = "Unknown"
         print("\nBeginning NMAP Scan Of {0}\n".format(tgt))
 
-        print("{0:^10}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
-        print('-'*36)
+        print("{0:^13}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
+        print('-'*39)
 
         for key, val in common_ports.items():
-            print("{0:10}|{1:^8}|".format(key.upper(),val),end='')
+            print("{0:13}|{1:^8}|".format(key.upper(),val),end='')
             try:
                 scan = nm.scan(tgt, str(val), arguments='-O')
                 sc_obj = scan['scan'][tgt]
@@ -122,27 +164,34 @@ def scanCommon(tgt):
                     return
 
                 print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
-                print('-'*36)
+                #print('-'*39)
                 if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
                     try:
                         tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
                     except:
                         tgtOS = "Unknown"
+
+                if(sc_obj['tcp'][val]['state'] == "open"):
+                    openPorts.append({"{0}".format(key.upper()) : "{0}".format(val)})
+
             except Exception as e:
                 print("Something went wrong < {0} >".format(e))
         
+        print("-"*39)
         print("\nTarget Operating System : {0}".format(tgtOS))
+        
         return
     elif((ttype == "LIST") or (ttype == "TUPLE")):
         for t in tgt:
             tgtOS = "Unknown"
+            openPorts.clear()
             print("\nBeginning NMAP Scan Of {0}\n".format(t))
 
-            print("{0:^10}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
-            print('-'*36)
+            print("{0:^13}|{1:^8}|{2:^15}|".format("Type","Port","Status"))
+            print('-'*39)
 
             for key, val in common_ports.items():
-                print("{0:10}|{1:^8}|".format(key.upper(),val),end='')
+                print("{0:13}|{1:^8}|".format(key.upper(),val),end='')
                 try:
                     scan = nm.scan(t, str(val), arguments='-O')
                     sc_obj = scan['scan'][t]
@@ -156,15 +205,20 @@ def scanCommon(tgt):
                         continue
 
                     print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
-                    print('-'*36)
+                    #print('-'*39)
                     if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
                         try:
                             tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
                         except:
                             tgtOS = "Unknown"
+
+                    if(sc_obj['tcp'][val]['state'] == "open"):
+                        openPorts.append({"{0}".format(key.upper()) : "{0}".format(val)})
+
                 except Exception as e:
                     print("Something went wrong < {0} >".format(e))
             
+            print("-"*39)
             print("\nTarget Operating System : {0}".format(tgtOS))
         return
     else:
@@ -212,7 +266,7 @@ def main():
     """
     global targets
 
-    scanCommon(targets[0:2]) 
+    scanCommon(targets[0])
 
     conn = baseConnect()
     if(conn == "FAILED"):
