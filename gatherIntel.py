@@ -111,7 +111,7 @@ def arpScan(tgtIP):
     try:
         iface_sel = int(input("Select interface number for ARP Scan: "))
         iface_use = ifaces[iface_sel-1]
-        _sysINFMSG("Beginning ARP Scan On <{0}> using interface <{1}>".format(tgtIP,ifaces[iface_use]))
+        _sysINFMSG("Beginning ARP Scan On <{0}> using interface <{1}>".format(tgtIP,iface_use))
     except:
         _sysERRMSG("Something Went Wrong")
     return
@@ -198,6 +198,17 @@ def fingerOS(tgtIP,oPort):
     osName = "Unknown"
     osProb = "0.00 %"
     osInfo = ()
+
+    nm = nmap.PortScanner()
+
+    scan = nm.scan(tgtIP, str(oPort), arguments='-O')
+
+    sc_obj = scan['scan'][tgtIP]['osmatch'][0]
+    osName = sc_obj['name']
+    osProb = "{0} %".format(sc_obj['accuracy'])
+
+    osInfo += (osName , osProb)
+    
     return osInfo
 
 def mainMenu():
@@ -212,11 +223,15 @@ def mainMenu():
         None
     """
     options = {
-            "SCAN TARGET" : 1
+            "SCAN TARGET" : 1,
+            "FINGERPRINT OS" : 2
             }
 
+    print("Menu Options:")
+    _printCHAR('-',20)
     for key,val in options.items():
         print("{0} : {1}".format(val,key))
+    print("")
 
     return
 
@@ -563,10 +578,10 @@ def main():
     """
     global targets
 
+    mainMenu()
     #scanCommon(targets[0])
-    #_scanTarget(targets[0])
-    print(checkInterfaces())
-    arpScan('127.0.0.1')
+    _scanTarget(targets[0])
+    arpScan(targets[0])
     
     conn = baseConnect()
     if(conn == "FAILED"):
