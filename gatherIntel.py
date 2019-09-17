@@ -334,7 +334,7 @@ def scanCommon(tgt):
             print("\nTarget Operating System : {0}".format(tgtOS))
         return
     else:
-        print("[!] INVALID TARGET TYPE")
+        _sysERRMSG("INVALID TARGET TYPE")
 
     return
 
@@ -446,6 +446,59 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025):
     _printCHAR('-',15)
     _sysINFMSG("Number Of Open Ports: {0}".format(nPORTSOPEN))
     _sysINFMSG("Closed Ports: {0}".format(numPorts-int(nPORTSOPEN)))
+    _sysINFMSG("Time Elapsed: {0}\n".format(te-ts))
+
+    """
+    Wait for user input and return
+    """
+    input("Press enter to continue")
+    return
+
+def _quickScanCommon(tgtIP):
+    """
+    Function Name: _quickScanCommon
+    Description:
+        Do quick-scam (non-nmap) of the common targets.
+    Input(s):
+        tgtIP - target IP address. List or string.
+    Return(s):
+        None
+    """
+    openPORTLIST = []
+    openPorts = 0
+    ts = datetime.now()
+
+    try:
+        for key,port in common_ports.items():
+            sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            sock.settimeout(0.05)
+            response = sock.connect_ex((tgtIP,port))
+            if (response == 0):
+                if (port in common_ports.values()):
+                    portUsage = key
+                else:
+                    portUsage = "Unknown"
+                pstr = "Port {0} ({1})".format(port,portUsage)
+                _sysSUCMSG("{0:<30}: OPEN".format(pstr))
+                openPORTLIST.append(str(port))
+                openPorts += 1
+            sock.close()
+    except KeyboardInterrupt:
+        _sysINFMSG("CTRL+C Pressed. Ending Scan At Port {0}".format(port))
+        sock.close()
+    except socket.gaierror:
+        _sysERRMSG("Hostname could not be resolved")
+    except socket.error:
+        _sysERRMSG("Could Not Connect To Target")
+
+    te = datetime.now()
+
+    nPORTSOPEN = len(common_ports) - openPorts
+    
+    print("\nScan Summary:")
+    _printCHAR('-',15)
+    _sysINFMSG("Number Of Open Ports: {0}".format(nPORTSOPEN))
+    _sysINFMSG("Closed Ports: {0}".format(len(common_ports)-int(nPORTSOPEN)))
     _sysINFMSG("Time Elapsed: {0}\n".format(te-ts))
 
     """
@@ -580,8 +633,9 @@ def main():
 
     mainMenu()
     #scanCommon(targets[0])
-    _scanTarget(targets[0])
-    arpScan(targets[0])
+    #_scanTarget(targets[0])
+    #arpScan(targets[0])
+    _quickScanCommon(targets[0])
     
     conn = baseConnect()
     if(conn == "FAILED"):
