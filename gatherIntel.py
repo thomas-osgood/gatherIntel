@@ -464,6 +464,18 @@ def _quickScanCommon(tgtIP):
     Return(s):
         None
     """
+
+    """
+    ttype = tgtType(tgtIP)
+
+    if ((ttype == "LIST") or (ttype == "TUPLE")):
+        for tgt in tgtIP:
+            _quickScanCommon(tgt)
+    elif ((ttype == "INVLAID") or (ttype == "DICT")):
+        _sysERRMSG("INVALID TARGET for _quickScanCommon")
+        return
+    """
+
     openPORTLIST = []
     openPorts = 0
     ts = datetime.now()
@@ -493,9 +505,9 @@ def _quickScanCommon(tgtIP):
 
     te = datetime.now()
 
-    nPORTSOPEN = len(common_ports) - openPorts
+    nPORTSOPEN = openPorts
     
-    print("\nScan Summary:")
+    print("\nScan Summary [ {0} ]:".format(tgtIP))
     _printCHAR('-',15)
     _sysINFMSG("Number Of Open Ports: {0}".format(nPORTSOPEN))
     _sysINFMSG("Closed Ports: {0}".format(len(common_ports)-int(nPORTSOPEN)))
@@ -635,7 +647,11 @@ def main():
     #scanCommon(targets[0])
     #_scanTarget(targets[0])
     #arpScan(targets[0])
-    _quickScanCommon(targets[0])
+    #_quickScanCommon(targets[0])
+
+    for tgt in targets:
+        _quickScanCommon(tgt)
+        print()
     
     conn = baseConnect()
     if(conn == "FAILED"):
