@@ -10,6 +10,7 @@ Requirements:
     - NMAP
     - ARP
     - SQLite3
+    - Whois
 Note:
     This must be run as SUDO / root user.
         - sudo python3 gatherIntel.py
@@ -23,6 +24,7 @@ import socket
 import sqlite3
 import sys
 import time
+import whois
 
 common_ports = {
         "http1" : 80,
@@ -224,7 +226,9 @@ def mainMenu():
     """
     options = {
             "SCAN TARGET" : 1,
-            "FINGERPRINT OS" : 2
+            "FINGERPRINT OS" : 2,
+            "QUICKSCAN RANGE" : 3,
+            "QUCKSCAN COMMON PORTS" : 4
             }
 
     print("Menu Options:")
@@ -517,6 +521,42 @@ def _quickScanCommon(tgtIP):
     Wait for user input and return
     """
     input("Press enter to continue")
+    return
+
+def getDomainInfo(domainName):
+    """
+    Function Name: getDomainInfo
+    Description:
+        Function to get the information of a domain
+        using WHOIS.
+    Input(s):
+        domainName - domain to get information on. String
+    Return(s):
+        dInfo - domain information. Dict.
+    """
+    ttype = tgtType(domainName)
+    if (ttype != "STRING"):
+        _sysERRMSG("Incorrect domain type entered")
+        return False
+
+    dInfo = whois.whois(domainName)
+    return dInfo
+
+def printDomainInfo(domainName):
+    """
+    Function Name: printDomainInfo
+    Description:
+        Function to print the information of a domain
+        after getting the info from WHOIS.
+    Input(s):
+        domainName - domain who's info to print. String
+    Return(s):
+        None
+    """
+    dInfo = getDomainInfo(domainName)
+    for key,val in dInfo.items():
+        print("{0} : {1}".format(key.upper(), val))
+
     return
 
 def tgtType(tgt):
