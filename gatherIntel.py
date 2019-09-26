@@ -273,7 +273,7 @@ def scanCommon(tgt):
         for key, val in common_ports.items():
             print("{0:13}|{1:^8}|".format(key.upper(),val),end='')
             try:
-                scan = nm.scan(tgt, str(val), arguments='-O')
+                scan = nm.scan(tgt, str(val), arguments='-O -sV')
                 sc_obj = scan['scan'][tgt]
 
                 """
@@ -284,7 +284,12 @@ def scanCommon(tgt):
                     print("[!] {0} is DOWN... Returning...".format(tgt))
                     return
 
-                print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
+                print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
+                if(sc_obj['tcp'][val]['state'] == "open"):
+                    svc = sc_obj['tcp'][val]['product'] + ' ' + sc_obj['tcp'][val]['version']
+                    print("{0:^10}".format(svc))
+                else:
+                    print()
                 if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
                     try:
                         tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
@@ -313,7 +318,7 @@ def scanCommon(tgt):
             for key, val in common_ports.items():
                 print("{0:13}|{1:^8}|".format(key.upper(),val),end='')
                 try:
-                    scan = nm.scan(t, str(val), arguments='-O')
+                    scan = nm.scan(t, str(val), arguments='-O -sV')
                     sc_obj = scan['scan'][t]
                     
                     """
@@ -324,7 +329,12 @@ def scanCommon(tgt):
                         print("[!] {0} is DOWN... Returning...".format(t))
                         continue
 
-                    print("{0:^15}|".format(sc_obj['tcp'][val]['state']))
+                    print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
+                    if(sc_obj['tcp'][val]['state'] == "open"):
+                        svc = sc_obj['tcp'][val]['product'] + ' ' + sc_obj['tcp'][val]['version']
+                        print("{0:^10}".format(svc))
+                    else:
+                        print()
                     if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
                         try:
                             tgtOS = "{0} ( {1} % Chance )".format(sc_obj['osmatch'][0]['name'],sc_obj['osmatch'][0]['accuracy'])
