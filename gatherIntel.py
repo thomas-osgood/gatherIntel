@@ -114,8 +114,11 @@ def arpScan(tgtIP):
         iface_sel = int(input("Select interface number for ARP Scan: "))
         iface_use = ifaces[iface_sel-1]
         _sysINFMSG("Beginning ARP Scan On <{0}> using interface <{1}>".format(tgtIP,iface_use))
+        start_time = datetime.now()
     except:
         _sysERRMSG("Something Went Wrong")
+
+    end_time = datetime.now()
     return
 
 def baseConnect():
@@ -554,8 +557,12 @@ def printDomainInfo(domainName):
         None
     """
     dInfo = getDomainInfo(domainName)
+
+    if (dInfo == False):
+        return
+
     for key,val in dInfo.items():
-        print("{0} : {1}".format(key.upper(), val))
+        print("{0:<15}: {1}".format(key.upper(), val))
 
     return
 
@@ -670,6 +677,58 @@ def _sysMSG(msg):
     print("[ ] {0:<80} ...".format(msg))
     return
 
+def _validateIPv4(tgtIP):
+    """
+    Function Name: _validateIPv4
+    Description:
+        Take an input address and determine whether
+        said address is a valid IPv4 address. This is
+        useful for sanitizing user input when asking
+        for an IP address.
+    Input(s):
+        tgtIP - IP address to validate. String.
+    Return(s):
+        True - IP address is valid IPv4 address
+        False - IP address not valid IPv4 address
+    Example:
+        _validateIPv4('192.168.1.1')
+        _validateIPv4(ipAddr)
+    """
+    try:
+        socket.inet_pton(socket.AF_INET,tgtIP)
+    except AttributeError:
+        try:
+            socket.inet_aton(tgtIP)
+        except socket.error:
+            return False
+    except socket.error:
+        return False
+
+    return True
+
+def _validateIPv6(tgtIP):
+    """
+    Function Name: _validateIPv6
+    Description:
+        Take an input address and determine whether
+        said address is a valid IPv6 address. This is
+        useful for sanitizing user input when asking
+        for an IP address.
+    Input(s):
+        tgtIP - IP address to validate. String.
+    Return(s):
+        True - IP address is valid IPv6 address
+        False - IP address not valid IPv6 address
+    Example:
+        _validateIPv6('FFFF:FFFF::FFFF:FFFF')
+        _validateIPv6(ipAddr)
+    """
+    try:
+        socket.inet_pton(socket.AF_INET6,tgtIP)
+    except socket.error:
+        return False
+    return True
+
 def main():
     """
     Function Name: Main
@@ -688,11 +747,12 @@ def main():
     #_scanTarget(targets[0])
     #arpScan(targets[0])
     #_quickScanCommon(targets[0])
+    
 
     for tgt in targets:
         _quickScanCommon(tgt)
         print()
-    
+ 
     conn = baseConnect()
     if(conn == "FAILED"):
         _sysERRMSG("Database Connection Failed")
