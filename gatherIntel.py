@@ -11,6 +11,7 @@ Requirements:
     - ARP
     - SQLite3
     - Whois
+    - targetObjects
 Note:
     This must be run as SUDO / root user.
         - sudo python3 gatherIntel.py
@@ -23,6 +24,7 @@ import platform
 import socket
 import sqlite3
 import sys
+import targetObjects
 import time
 import whois
 
@@ -287,7 +289,7 @@ def scanCommon(tgt):
                 print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
                 if(sc_obj['tcp'][val]['state'] == "open"):
                     svc = sc_obj['tcp'][val]['product'] + ' ' + sc_obj['tcp'][val]['version']
-                    print("{0:^10}".format(svc))
+                    print(" {0:^10}".format(svc))
                 else:
                     print()
                 if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
@@ -332,7 +334,7 @@ def scanCommon(tgt):
                     print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
                     if(sc_obj['tcp'][val]['state'] == "open"):
                         svc = sc_obj['tcp'][val]['product'] + ' ' + sc_obj['tcp'][val]['version']
-                        print("{0:^10}".format(svc))
+                        print(" {0:^10}".format(svc))
                     else:
                         print()
                     if((sc_obj['tcp'][val]['state'] == "open") and (tgtOS == "Unknown")):
@@ -355,13 +357,14 @@ def scanCommon(tgt):
 
     return
 
-def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025):
+def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
     """
     Function Name: _scanTARGET
     Inputs:
         tgtIP - IP address of target
         __portMIN - (optional) starting port
         __portMAX - (optional) ending port
+        __idSVC - (optional) id open port service
     Return Values:
         None
     Functionality:
@@ -739,6 +742,23 @@ def _validateIPv6(tgtIP):
         return False
     return True
 
+def _runDemo():
+    """
+    Function Name: _runDemo
+    Description:
+        Run a demonstration of the major functions
+        of this program.
+    Input(s):
+        None
+    Return(s):
+        None
+    """
+    localhost = '127.0.0.1'
+    scanCommon(localhost)
+    _quickScanCommon(localhost)
+    _scanTarget(localhost)
+    return
+
 def main():
     """
     Function Name: Main
@@ -753,15 +773,17 @@ def main():
     global targets
 
     mainMenu()
-    #scanCommon(targets[0])
+    #scanCommon(targets[1])
     #_scanTarget(targets[0])
     #arpScan(targets[0])
     #_quickScanCommon(targets[0])
     
 
-    for tgt in targets:
-        _quickScanCommon(tgt)
-        print()
+    #for tgt in targets:
+    #    _quickScanCommon(tgt)
+    #    print()
+
+    _runDemo()
  
     conn = baseConnect()
     if(conn == "FAILED"):
