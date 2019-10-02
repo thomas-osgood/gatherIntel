@@ -59,6 +59,7 @@ class targetDomain(target):
     """
     def __init__(self, tgtDomain):
         self.domain_name = tgtDomain
+        return
 
 class targetIP(target):
     """
@@ -66,6 +67,27 @@ class targetIP(target):
     Inherits from target baseclass.
     """
     def __init__(self, ipAddr):
+        if (gatherIntel._validateIPv4(ipAddr) == False):
+            if (gatherIntel._validateIPv6(ipAddr) == False):
+                gatherIntel._sysERRMSG("Invalid IP Address. IP Set To 127.0.0.1")
+                self.target_ip = '127.0.0.1'
+                return
         self.target_ip = ipAddr
+        return
 
+    def __del__(self):
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
+        return
 
+    def changeIP(self):
+        new_ip = input("Enter new IP address: ")
+        
+        if (gatherIntel._validateIPv4(new_ip) == False):
+            if (gatherIntel._validateIPv6(new_ip) == False):
+                gatherIntel._sysERRMSG("IP Address Invalid. Address Remains {0}".format(self.target_ip))
+                return
+        else:
+            self.target_ip = new_ip
+            gatherIntel._sysSUCMSG("IP Address Validated And Successfully Changed To {0}".format(self.target_ip))
+
+        return
