@@ -21,6 +21,11 @@ class target:
     open_ports = []
     services = {}
 
+    domain_emails = []
+    domain_owner = ""
+    domain_org = ""
+    domain_renewal = ""
+
     def __init__(self):
         pass
 
@@ -59,14 +64,43 @@ class targetDomain(target):
     """
     def __init__(self, tgtDomain):
         self.domain_name = tgtDomain
+        self.open_ports = []
+        self.services = {}
+
+        try:
+            domain_info = gatherIntel.getDomainInfo(self.domain_name)
+            self.domain_emails = domain_info["emails"]
+            self.domain_renewal = domain_info["updated_date"][0]
+            self.domain_org = domain_info["org"]
+            self.domain_owner = domain_info["registrar"]
+
+        except Exception as e:
+            gatherIntel._sysERRMSG("Something went wrong getting domain information. < {0} >".format(e))
+            self.domain_emails = []
+            self.domain_org = "Unknown"
+            self.domain_owner = "Unknown"
+            self.domain_renewal = ""
+
         return
 
+    def __del__(self):
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
+        return
+    
 class targetIP(target):
     """
     Target subclass for an IP address.
     Inherits from target baseclass.
     """
     def __init__(self, ipAddr):
+        self.domain_emails = []
+        self.domain_name = "Unknown"
+        self.domain_org = "Unknown"
+        self.domain_owner = "Unknown"
+        self.domain_renewal = ""
+        self.open_ports = []
+        self.services = {}
+
         if (gatherIntel._validateIPv4(ipAddr) == False):
             if (gatherIntel._validateIPv6(ipAddr) == False):
                 gatherIntel._sysERRMSG("Invalid IP Address. IP Set To 127.0.0.1")
