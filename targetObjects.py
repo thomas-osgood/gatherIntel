@@ -64,13 +64,36 @@ class targetDomain(target):
     """
     def __init__(self, tgtDomain):
         self.domain_name = tgtDomain
+        self._setDomainVars()
         self.open_ports = []
         self.services = {}
+        return
 
+    def __del__(self):
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
+        return
+
+    def reset(self):
+        new_domain = input("Enter new domain: ")
+        self.domain_name = new_domain
+        self._setDomainVars()
+        return
+
+    def _setDomainVars(self):
         try:
             domain_info = gatherIntel.getDomainInfo(self.domain_name)
+            domain_keys = domain_info.keys()
+
             self.domain_emails = domain_info["emails"]
-            self.domain_renewal = domain_info["updated_date"][0]
+            
+            if ('updated_date' in domain_keys):
+                if (gatherIntel.tgtType(domain_info["updated_date"]) == "LIST"):
+                    self.domain_renewal = domain_info["updated_date"][0]
+                else:
+                    self.domain_renewal = domain_info["updated_date"]
+            else:
+                self.domain_renewal = ""
+
             self.domain_org = domain_info["org"]
             self.domain_owner = domain_info["registrar"]
 
@@ -80,11 +103,6 @@ class targetDomain(target):
             self.domain_org = "Unknown"
             self.domain_owner = "Unknown"
             self.domain_renewal = ""
-
-        return
-
-    def __del__(self):
-        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
         return
     
 class targetIP(target):
@@ -124,4 +142,36 @@ class targetIP(target):
             self.target_ip = new_ip
             gatherIntel._sysSUCMSG("IP Address Validated And Successfully Changed To {0}".format(self.target_ip))
 
+        return
+
+    def _setDomainVars(self):
+        try:
+            domain_info = gatherIntel.getDomainInfo(self.target_ip)
+            domain_keys = domain_info.keys()
+
+            if (gatherIntel.tgtType(domain_info["domain_name"]) == "LIST"):
+                self.domain_name = domain_info["domain_name"][0]
+            else:
+                self.domain_name = domain_info["domain_name"]
+
+            self.domain_emails = domain_info["emails"]
+            
+            if ('updated_date' in domain_keys):
+                if (gatherIntel.tgtType(domain_info["updated_date"]) == "LIST"):
+                    self.domain_renewal = domain_info["updated_date"][0]
+                else:
+                    self.domain_renewal = domain_info["updated_date"]
+            else:
+                self.domain_renewal = ""
+
+            self.domain_org = domain_info["org"]
+            self.domain_owner = domain_info["registrar"]
+
+        except Exception as e:
+            gatherIntel._sysERRMSG("Something went wrong getting domain information. < {0} >".format(e))
+            self.domain_name = "Unknown"
+            self.domain_emails = []
+            self.domain_org = "Unknown"
+            self.domain_owner = "Unknown"
+            self.domain_renewal = ""
         return
