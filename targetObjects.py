@@ -27,6 +27,16 @@ class target:
     domain_renewal = ""
 
     def __init__(self):
+        """
+        Function Name: __init__
+        Description:
+            Function that gets run when the class object is 
+            created.
+        Input(s):
+            self - required for all class functions
+        Return(s):
+            None
+        """
         pass
 
     def getIP(self):
@@ -63,6 +73,17 @@ class targetDomain(target):
     Inherits from target baseclass.
     """
     def __init__(self, tgtDomain):
+        """
+        Function Name: __init__
+        Description:
+            Function that gets run when the class object is 
+            created.
+        Input(s):
+            self - required for all class functions
+            tgtDomain - name of the target domain.
+        Return(s):
+            None
+        """
         self.domain_name = tgtDomain
         self._setDomainVars()
         self.open_ports = []
@@ -70,16 +91,45 @@ class targetDomain(target):
         return
 
     def __del__(self):
+        """
+        Function Name: __del__
+        Description:
+            Function that gets run when the class object is 
+            deleted or cleaned up post program.
+        Input(s):
+            self - required for all class functions.
+        Return(s):
+            None
+        """
         gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
         return
 
     def reset(self):
+        """
+        Function Name: reset
+        Description:
+            Function to reset the class object and variables.
+        Input(s):
+            self - required for all class functions
+        Return(s):
+            None
+        """
         new_domain = input("Enter new domain: ")
         self.domain_name = new_domain
         self._setDomainVars()
         return
 
     def _setDomainVars(self):
+        """
+        Function Name: _setDomainVars
+        Description:
+            Function to gather domain information and
+            save the info to the related class vars.
+        Input(s):
+            self - required for all class functions.
+        Return(s):
+            None
+        """
         try:
             domain_info = gatherIntel.getDomainInfo(self.domain_name)
             domain_keys = domain_info.keys()
@@ -111,6 +161,17 @@ class targetIP(target):
     Inherits from target baseclass.
     """
     def __init__(self, ipAddr):
+        """
+        Function Name: __init__
+        Description:
+            Function that gets run when the class object is 
+            created.
+        Input(s):
+            self - required for all class functions
+            ipAddr - target IP address
+        Return(s):
+            None
+        """
         self.domain_emails = []
         self.domain_name = "Unknown"
         self.domain_org = "Unknown"
@@ -128,10 +189,30 @@ class targetIP(target):
         return
 
     def __del__(self):
+        """
+        Function Name: __del__
+        Description:
+            Function that gets run when the class object is 
+            deleted or cleaned up post program.
+        Input(s):
+            self - required for all class functions.
+        Return(s):
+            None
+        """
         gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
         return
 
     def changeIP(self):
+        """
+        Function Name: changeIP
+        Description:
+            Function to change and validate the target
+            IP address related to this class object.
+        Input(s):
+            self - required for all class functions
+        Return(s):
+            None
+        """
         new_ip = input("Enter new IP address: ")
         
         if (gatherIntel._validateIPv4(new_ip) == False):
@@ -145,6 +226,16 @@ class targetIP(target):
         return
 
     def _setDomainVars(self):
+        """
+        Function Name: _setDomainVars
+        Description:
+            Function to gather domain information and
+            save the info to the related class vars.
+        Input(s):
+            self - required for all class functions.
+        Return(s):
+            None
+        """
         try:
             domain_info = gatherIntel.getDomainInfo(self.target_ip)
             domain_keys = domain_info.keys()
