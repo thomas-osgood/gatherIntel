@@ -9,6 +9,7 @@ Required Libraries:
     - gatherIntel.py
 """
 import gatherIntel
+import socket
 
 class target:
     """
@@ -134,6 +135,8 @@ class targetDomain(target):
             domain_info = gatherIntel.getDomainInfo(self.domain_name)
             domain_keys = domain_info.keys()
 
+            self.target_ip = socket.gethostbyname(self.domain_name)
+
             self.domain_emails = domain_info["emails"]
             
             if ('updated_date' in domain_keys):
@@ -221,6 +224,7 @@ class targetIP(target):
                 return
         else:
             self.target_ip = new_ip
+            self.domain_name = socket.gethostname(self.target_ip)
             gatherIntel._sysSUCMSG("IP Address Validated And Successfully Changed To {0}".format(self.target_ip))
 
         return
@@ -237,7 +241,8 @@ class targetIP(target):
             None
         """
         try:
-            domain_info = gatherIntel.getDomainInfo(self.target_ip)
+            self.domain_name = socket.gethostname(self.target_ip)
+            domain_info = gatherIntel.getDomainInfo(self.domain_name)
             domain_keys = domain_info.keys()
 
             if (gatherIntel.tgtType(domain_info["domain_name"]) == "LIST"):

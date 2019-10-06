@@ -23,6 +23,7 @@ import nmap
 import platform
 import socket
 import sqlite3
+import subprocess
 import sys
 import targetObjects
 import time
@@ -139,7 +140,7 @@ def baseConnect():
         conn = sqlite3.connect(baseName)
         _sysSUCMSG("Connected to database < {0} >".format(baseName))
     except Exception as e:
-        _sysERRMSG("[!] Something went wrong < {0} >".format(e))
+        _sysERRMSG("Something went wrong < {0} >".format(e))
         conn = "FAILED"
 
     return conn
@@ -258,7 +259,6 @@ def scanCommon(tgt):
     global common_ports
     
     ttype = tgtType(tgt)
-    print(tgt)
 
     nm = nmap.PortScanner()
 
@@ -742,6 +742,48 @@ def _validateIPv6(tgtIP):
         return False
     return True
 
+def _validateDomain(domain_name):
+    """
+    Function Name: _validateDomain
+    Description:
+        Validate a domain by pinging the
+        domain and seeing what kind of
+        response is returned.
+    Input(s):
+        domain_name - name or IP to ping
+    Return(s):
+        False - invalid domain
+        True - valid domain
+    """
+    sys_platform = platform.system().lower()
+    
+    if (sys_platform == 'windows'):
+        param = '-n'
+    else:
+        param = '-c'
+
+    p_count = '1'
+
+    command = ['ping', param, p_count, domain_name]
+
+    ret_val = subprocess.call(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    if (ret_val != 0):
+        valid_domain = 0
+    else:
+        valid_domain = 1
+
+    try:
+        socket.gethostbyname(domain_name)
+        valid_domain = 1
+    except socket.gaierror:
+        valid_domain = 0
+
+    if (valid_domain == 0):
+        return False
+
+    return True
+
 def _runDemo():
     """
     Function Name: _runDemo
@@ -754,7 +796,22 @@ def _runDemo():
         None
     """
     localhost = '127.0.0.1'
-    scanCommon(localhost)
+
+    _sysMSG("Start IP Address Functions Demo")
+    _printCHAR('-',40)
+    print("{0} is an IPv4 address: {1}".format(localhost,_validateIPv4(localhost)))
+    print("{0} is an IPv6 address: {1}".format(localhost,_validateIPv6(localhost)))
+
+    _printCHAR('-',40)
+    _sysMSG("Start Domain Functions Demo")
+    _printCHAR('-',40)
+    print("whois.net is a valid domain: {0}".format(_validateDomain('whois.net')))
+    printDomainInfo('whois.net')
+    
+    _printCHAR('-',40)
+    _sysMSG("Start Scanning Functions Demo")
+    _printCHAR('-',40)
+    scanCommon(localhost) 
     _quickScanCommon(localhost)
     _scanTarget(localhost)
     return
