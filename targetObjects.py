@@ -187,8 +187,10 @@ class targetIP(target):
             if (gatherIntel._validateIPv6(ipAddr) == False):
                 gatherIntel._sysERRMSG("Invalid IP Address. IP Set To 127.0.0.1")
                 self.target_ip = '127.0.0.1'
+                self._setDomainVars()
                 return
         self.target_ip = ipAddr
+        self._setDomainVars()
         return
 
     def __del__(self):
@@ -241,8 +243,7 @@ class targetIP(target):
             None
         """
         try:
-            self.domain_name = socket.gethostname(self.target_ip)
-            domain_info = gatherIntel.getDomainInfo(self.domain_name)
+            domain_info = gatherIntel.getDomainInfo(self.target_ip)
             domain_keys = domain_info.keys()
 
             if (gatherIntel.tgtType(domain_info["domain_name"]) == "LIST"):
