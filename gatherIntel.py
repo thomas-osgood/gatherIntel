@@ -20,6 +20,7 @@ Note:
 
 from datetime import datetime
 import nmap
+import os
 import platform
 import socket
 import sqlite3
@@ -850,6 +851,10 @@ def main():
         conn.close()
 
     return
+
+if (not(os.getuid() == 0)):
+    lib_name = os.path.basename(__file__)
+    _sysERRMSG("WARNING: NOT RUNNING AS SUDO OR ROOT. SOME FUNCTIONS FROM {0} MAY NOT WORK".format(lib_name))
 
 if __name__ == '__main__':
     main()
