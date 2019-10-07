@@ -19,16 +19,30 @@ Note:
 """
 
 from datetime import datetime
-import nmap
+
+try:
+    import nmap
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT NMAP. PLEASE MAKE SURE IT IS INSTALLED")
+
 import os
 import platform
 import socket
 import sqlite3
 import subprocess
 import sys
-import targetObjects
+
+try:
+    import targetObjects
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT targetObjects.py")
+
 import time
-import whois
+
+try:
+    import whois
+except:
+    _sysERRMSG("ERROR: UNABLE TO  IMPORT WHOIS. PLEASE MAKE SURE IT IS INSTALLED")
 
 common_ports = {
         "http1" : 80,
