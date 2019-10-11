@@ -43,6 +43,8 @@ GatherIntel is a library containing functions related to network scanning.
 
 * **fingerOS**: Function that uses an open port and NMAP to attempt to determine what Operating System the target machine is running.
 
+* **_findHosts**: Function that uses an NMAP port scanner to find, and return a list of, all hosts connected to a router (ex: 192.168.1.1/24).
+
 ---
 
 ## 2. targetObjects

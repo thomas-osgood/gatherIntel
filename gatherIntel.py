@@ -28,7 +28,12 @@ except:
 import os
 import platform
 import socket
-import sqlite3
+
+try:
+    import sqlite3
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT SQLite3. PLEASE MAKE SURE IT IS INSTALLED")
+
 import subprocess
 import sys
 
@@ -381,17 +386,17 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
         __portMAX - (optional) ending port
         __idSVC - (optional) id open port service
     Return Values:
-        None
+        openPORTLIST - list of open ports from scan.
     Functionality:
         Scan a range of Ports specified by the user
         and display which ports are open on the 
         target machine.  A summary of the scan will
         display after it has completed.
     Example:
-        _scanTARGET()
-        _scanTARGET(__portMIN=10)
-        _scanTARGET(__portMAX=100)
-        _scanTARGET(_portMIN=10,__portMAX=20)
+        oPorts = _scanTARGET()
+        oPorts = _scanTARGET(__portMIN=10)
+        oPorts = _scanTARGET(__portMAX=100)
+        oPorts = _scanTARGET(_portMIN=10,__portMAX=20)
     """
     nPORTSOPEN = 0
     beginPORT = 1
@@ -487,7 +492,7 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
     Wait for user input and return
     """
     input("Press enter to continue")
-    return
+    return openPORTLIST
 
 def _quickScanCommon(tgtIP):
     """
@@ -497,7 +502,7 @@ def _quickScanCommon(tgtIP):
     Input(s):
         tgtIP - target IP address. List or string.
     Return(s):
-        None
+        openPORTLIST - open ports from scan (if any).
     """
 
     """
@@ -552,7 +557,36 @@ def _quickScanCommon(tgtIP):
     Wait for user input and return
     """
     input("Press enter to continue")
-    return
+    return openPORTLIST
+
+def _findHosts(tgtRouter = None):
+    """
+    Function Name: _findHosts
+    Description:
+        Function to find all hosts on a network using
+        nmap and scanning the router.
+    Input(s):
+        tgtRouter - target router IP address. String.
+    Return(s):
+        hostList - list of network hosts.
+    """
+    if (tgtRouter is None):
+        tgtRouter = '192.168.1.1'
+
+    if (tgtRouter[-3:] != '/24'):
+        tgtRouter += '/24'
+
+    cmdArgs = '-sP'
+
+    try:
+        nm = nmap.PortScanner()
+        scan = nm.scan(tgtRouter,arguments=cmdArgs)
+        hostList = scan['scan'].keys()
+    except Exception as e:
+        _sysERRMSG("Something Went Wrong: {0}".format(e))
+        return None
+
+    return hostList
 
 def getDomainInfo(domainName):
     """
