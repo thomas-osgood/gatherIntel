@@ -570,11 +570,24 @@ def _findHosts(tgtRouter = None):
     Return(s):
         hostList - list of network hosts.
     """
+    ipv4 = False
+    ipv6 = False
+
     if (tgtRouter is None):
         tgtRouter = '192.168.1.1'
 
-    if (tgtRouter[-3:] != '/24'):
-        tgtRouter += '/24'
+    if (_validateIPv4(tgtRouter)):
+        endVal = '/24'
+        ipv4 = True
+    elif (_validateIPv6(tgtRouter)):
+        endVal = '/112'
+        ipv6 = True
+    else:
+        _sysERRMSG("Unknown Target Type. Not IPv4 or IPv6")
+        return None
+
+    if (((tgtRouter[-3:] != endVal) and (ipv4)) or ((tgtRouter[-4:] != endVal) and (ipv6))):
+        tgtRouter += endVal
 
     cmdArgs = '-sP'
 
