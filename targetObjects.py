@@ -116,6 +116,11 @@ class targetDomain(target):
             None
         """
         new_domain = input("Enter new domain: ")
+
+        if (not (gatherIntel._validateDomain(new_domain))):
+            gatherIntel._sysERRMSG("ERROR: DOMAIN NAME NOT VALID. DOMAIN REMAINS {0}".format(self.domain_name))
+            return
+
         self.domain_name = new_domain
         self._setDomainVars()
         return
@@ -156,6 +161,7 @@ class targetDomain(target):
             self.domain_org = "Unknown"
             self.domain_owner = "Unknown"
             self.domain_renewal = ""
+
         return
     
 class targetIP(target):
@@ -271,4 +277,5 @@ class targetIP(target):
             self.domain_org = "Unknown"
             self.domain_owner = "Unknown"
             self.domain_renewal = ""
+
         return
