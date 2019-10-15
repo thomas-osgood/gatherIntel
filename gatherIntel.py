@@ -572,9 +572,14 @@ def _findHosts(tgtRouter = None):
     """
     ipv4 = False
     ipv6 = False
-
+    
     if (tgtRouter is None):
         tgtRouter = '192.168.1.1'
+    
+    if (tgtRouter[-3:] == '/24'):
+        tgtRouter = tgtRouter[:-3]
+    elif (tgtRouter[-4:] == '/112'):
+        tgtRouter = tgtRouter[:-4]
 
     if (_validateIPv4(tgtRouter)):
         endVal = '/24'
