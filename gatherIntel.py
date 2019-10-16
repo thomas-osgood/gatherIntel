@@ -918,7 +918,7 @@ def main():
 
     return
 
-if (not(os.getuid() == 0)):
+if ((os.getuid() != 0) and (os.name != 'nt')):
     lib_name = os.path.basename(__file__)
     _sysERRMSG("WARNING: NOT RUNNING AS SUDO OR ROOT. SOME FUNCTIONS FROM {0} MAY NOT WORK".format(lib_name))
 
