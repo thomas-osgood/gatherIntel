@@ -7,7 +7,10 @@ Description:
     to operate as intended.
 Required Libraries:
     - gatherIntel.py
+    - datetime
+    - socket
 """
+from datetime import datetime
 import gatherIntel
 import socket
 
@@ -102,7 +105,7 @@ class targetDomain(target):
         Return(s):
             None
         """
-        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted [{1}]".format(self, datetime.now()))
         return
 
     def reset(self):
@@ -196,7 +199,20 @@ class targetIP(target):
                 self._setDomainVars()
                 return
         self.target_ip = ipAddr
-        self._setDomainVars()
+
+        if (gatherIntel._validateDomain(self.target_ip)):
+            try:
+                self.operating_system = gatherIntel.fingerOS(self.target_ip)[0]
+            except:
+                self.operating_system = "Unknown"
+
+            self._setDomainVars()
+        else:
+            gatherIntel._sysERRMSG("HOST NOT ONLINE. TARGET IP CHANGING TO 127.0.0.1")
+            self.target_ip = '127.0.0.1'
+            self.operating_system = gatherIntel.fingerOS(self.target_ip)[0]
+            self._setDomainVars()
+
         return
 
     def __del__(self):
@@ -210,7 +226,7 @@ class targetIP(target):
         Return(s):
             None
         """
-        gatherIntel._sysINFMSG("Object Instance {0} Deleted".format(self))
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted [{1}]".format(self, datetime.now()))
         return
 
     def changeIP(self):
