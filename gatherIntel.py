@@ -229,7 +229,6 @@ def fingerOS(tgtIP,oPort = None):
 
     if (oPort == None):
         oPort = _quickScanOpen(tgtIP)
-        _sysINFMSG("Open Port: {0}".format(oPort))
 
     if (oPort == False):
         _sysERRMSG("No Open Port Found. Cannot Fingerprint {0}'s OS".format(tgtIP))
@@ -589,7 +588,7 @@ def _quickScanOpen(tgtIP):
             response = sock.connect_ex((tgtIP,port+1))
             if (response == 0):
                 sock.close()
-                return port
+                return port+1
             sock.close()
     except KeyboardInterrupt:
         _sysINFMSG("CTRL+C Pressed. Ending Scan At Port {0}".format(port))
