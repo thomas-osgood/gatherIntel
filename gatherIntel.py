@@ -505,13 +505,14 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
     input("Press enter to continue")
     return openPORTLIST
 
-def _quickScanCommon(tgtIP):
+def _quickScanCommon(tgtIP, _usrInp = True):
     """
     Function Name: _quickScanCommon
     Description:
         Do quick-scam (non-nmap) of the common targets.
     Input(s):
         tgtIP - target IP address. List or string.
+        _usrInp - T/F on whether to wait for user input at end.
     Return(s):
         openPORTLIST - open ports from scan (if any).
     """
@@ -564,10 +565,12 @@ def _quickScanCommon(tgtIP):
     _sysINFMSG("Closed Ports: {0}".format(len(common_ports)-int(nPORTSOPEN)))
     _sysINFMSG("Time Elapsed: {0}\n".format(te-ts))
 
-    """
-    Wait for user input and return
-    """
-    input("Press enter to continue")
+    if (_usrInp == True):
+        """
+        Wait for user input and return
+        """
+        input("Press enter to continue")
+
     return openPORTLIST
 
 def _quickScanOpen(tgtIP):
@@ -579,6 +582,7 @@ def _quickScanOpen(tgtIP):
         tgtIP - target IP address. List or string.
     Return(s):
         port - first open port found (if any).
+        False - no open port found.
     """
 
     try:
@@ -889,6 +893,35 @@ def _validateDomain(domain_name):
 
     if (valid_domain == 0):
         return False
+
+    return True
+
+def _hostOnline(tgtHost, port = None):
+    """
+    Function Name: _hostOnline
+    Description:
+        Check if a host is online.
+    Input(s):
+        tgtHost - IP address or Hostname
+        port - port to check (optional)
+    Return(s):
+        True - host online
+        False - host offline
+    """
+    if (port is None):
+        port = 80
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        s.connect((tgtHost,port))
+        s.close()
+    except:
+        port = _quickScanOpen(tgtHost)
+        if (port == False):
+            return False
+        else:
+            return _hostOnline(tgtHost,port)
 
     return True
 

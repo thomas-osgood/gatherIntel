@@ -200,7 +200,7 @@ class targetIP(target):
                 return
         self.target_ip = ipAddr
 
-        if (gatherIntel._validateDomain(self.target_ip)):
+        if (gatherIntel._hostOnline(self.target_ip)):
             try:
                 self.operating_system = gatherIntel.fingerOS(self.target_ip)[0]
             except:
