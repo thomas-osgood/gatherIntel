@@ -211,7 +211,7 @@ def checkInterfaces():
 
     return ifaces
 
-def fingerOS(tgtIP,oPort):
+def fingerOS(tgtIP,oPort = None):
     """
     Function Name: fingerOS
     Description:
@@ -227,15 +227,27 @@ def fingerOS(tgtIP,oPort):
     osProb = "0.00 %"
     osInfo = ()
 
-    nm = nmap.PortScanner()
+    if (oPort == None):
+        oPort = _quickScanOpen(tgtIP)
+        _sysINFMSG("Open Port: {0}".format(oPort))
 
-    scan = nm.scan(tgtIP, str(oPort), arguments='-O')
+    if (oPort == False):
+        _sysERRMSG("No Open Port Found. Cannot Fingerprint {0}'s OS".format(tgtIP))
 
-    sc_obj = scan['scan'][tgtIP]['osmatch'][0]
-    osName = sc_obj['name']
-    osProb = "{0} %".format(sc_obj['accuracy'])
+    try:
+        nm = nmap.PortScanner()
 
-    osInfo += (osName , osProb)
+        scan = nm.scan(tgtIP, str(oPort), arguments='-O')
+
+        sc_obj = scan['scan'][tgtIP]['osmatch'][0]
+        osName = sc_obj['name']
+        osProb = "{0} %".format(sc_obj['accuracy'])
+
+        osInfo += (osName , osProb)
+    except Exception as e:
+        osName = "Unknown"
+        osProb = "0.00 %"
+        osInfo += (osName , osProb)
     
     return osInfo
 
@@ -558,6 +570,36 @@ def _quickScanCommon(tgtIP):
     """
     input("Press enter to continue")
     return openPORTLIST
+
+def _quickScanOpen(tgtIP):
+    """
+    Function Name: _quickScanCommon
+    Description:
+        Do quick-scam (non-nmap) of all ports.
+    Input(s):
+        tgtIP - target IP address. List or string.
+    Return(s):
+        port - first open port found (if any).
+    """
+
+    try:
+        for port in range(65535):
+            sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            sock.settimeout(0.05)
+            response = sock.connect_ex((tgtIP,port+1))
+            if (response == 0):
+                sock.close()
+                return port
+            sock.close()
+    except KeyboardInterrupt:
+        _sysINFMSG("CTRL+C Pressed. Ending Scan At Port {0}".format(port))
+        sock.close()
+    except socket.gaierror:
+        _sysERRMSG("Hostname could not be resolved")
+    except socket.error:
+        _sysERRMSG("Could Not Connect To Target")
+
+    return False
 
 def _findHosts(tgtRouter = None):
     """
