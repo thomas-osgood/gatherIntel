@@ -1,6 +1,11 @@
 # Readme
 ---
 
+## IMPORTANT
+
+This program is for educational and white-hat uses only.  The creator of this program is not responsible for any user's actions.
+
+---
 ## 1. GatherIntel
 
 GatherIntel is a library containing functions related to network scanning.
@@ -38,6 +43,8 @@ GatherIntel is a library containing functions related to network scanning.
 * **scanCommon**: Function that uses NMAP to scan a target and see whether any of the most commonly used ports are open. Slow, but very accurate.
 
 * **_quickScanCommon**: Function that uses sockets to determine whether any of the most commonly used ports are open. Much faster than NMAP scan.
+
+* **_quickScanOpen**: Function that quick scans all the ports of a target and returns the first open port it finds. If no open port is found, False is returned.
 
 * **_scanTarget**: Function that uses sockets to scan a range of ports, specified by the user, and determine which ports are open within that range.
 
