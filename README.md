@@ -52,6 +52,8 @@ GatherIntel is a library containing functions related to network scanning.
 
 * **_findHosts**: Function that uses an NMAP port scanner to find, and return a list of, all hosts connected to a router (ex: 192.168.1.1/24).
 
+* **_hostOnline**: A function that tells whether or not a given target is on the network (ie: the host is "reachable").
+
 ---
 
 ## 2. targetObjects
