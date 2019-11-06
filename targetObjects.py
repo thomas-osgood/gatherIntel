@@ -13,6 +13,7 @@ Required Libraries:
 from datetime import datetime
 import gatherIntel
 import socket
+import threading
 
 class target:
     """
@@ -41,7 +42,21 @@ class target:
         Return(s):
             None
         """
-        pass
+        return
+
+    def __del__(self):
+        """
+        Function Name: __del__
+        Description:
+            Function that gets run when the class object is 
+            deleted or cleaned up post program.
+        Input(s):
+            self - required for all class functions.
+        Return(s):
+            None
+        """
+        gatherIntel._sysINFMSG("Object Instance {0} Deleted [{1}]".format(self, datetime.now()))
+        return
 
     def getIP(self):
         """
@@ -52,9 +67,23 @@ class target:
         Input(s):
             self - Class' self item (required)
         Return(s):
+            target_ip - IP of the target device
+        """
+        return self.target_ip
+
+    def showTargetInfo(self):
+        """
+        Function Name: showTargetInfo
+        Description:
+            Function to display all the information
+            collected on the target device.
+        Input(s):
+            self - Class' self item (required)
+        Return(s):
             None
         """
-        self.target_ip = ""
+        for key in self.__dict__:
+            gatherIntel._sysINFMSG("{0} : {1}".format(key,self.__dict__[key]))
         return
 
     def getDomainInfo(self):
@@ -66,10 +95,22 @@ class target:
         Input(s):
             self - Class' self item (required)
         Return(s):
-            None
+            self.__dict__ - dictionary containing all variables.
         """
-        self.domain_name = ""
-        return
+        return self.__dict__
+
+    def getOperatingSystem(self):
+        """
+        Function Name: getOperatingSystem
+        Description:
+            Function to get the operating system information
+            stored in the class.
+        Input(s):
+            self -Class' self item (required)
+        Return(s):
+            self.operating_system - operating system name
+        """
+        return self.operating_system
 
 class targetDomain(target):
     """
@@ -92,20 +133,9 @@ class targetDomain(target):
         self._setDomainVars()
         self.open_ports = []
         self.services = {}
-        return
+        self.operating_system = gatherIntel.fingerOS(self.target_ip)[0]
 
-    def __del__(self):
-        """
-        Function Name: __del__
-        Description:
-            Function that gets run when the class object is 
-            deleted or cleaned up post program.
-        Input(s):
-            self - required for all class functions.
-        Return(s):
-            None
-        """
-        gatherIntel._sysINFMSG("Object Instance {0} Deleted [{1}]".format(self, datetime.now()))
+        gatherIntel._sysINFMSG("Object Instance {0} Created [{1}]".format(self, datetime.now()))
         return
 
     def reset(self):
@@ -143,7 +173,10 @@ class targetDomain(target):
             domain_info = gatherIntel.getDomainInfo(self.domain_name)
             domain_keys = domain_info.keys()
 
-            self.target_ip = socket.gethostbyname(self.domain_name)
+            try:
+                self.target_ip = socket.gethostbyname(self.domain_name)
+            except:
+                self.target_ip = ""
 
             self.domain_emails = domain_info["emails"]
             
@@ -213,20 +246,8 @@ class targetIP(target):
             self.operating_system = gatherIntel.fingerOS(self.target_ip)[0]
             self._setDomainVars()
 
-        return
+        gatherIntel._sysINFMSG("Object Instance {0} Created [{1}]".format(self, datetime.now()))
 
-    def __del__(self):
-        """
-        Function Name: __del__
-        Description:
-            Function that gets run when the class object is 
-            deleted or cleaned up post program.
-        Input(s):
-            self - required for all class functions.
-        Return(s):
-            None
-        """
-        gatherIntel._sysINFMSG("Object Instance {0} Deleted [{1}]".format(self, datetime.now()))
         return
 
     def changeIP(self):

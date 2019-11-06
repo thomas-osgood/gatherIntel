@@ -17,37 +17,13 @@ Note:
         - sudo python3 gatherIntel.py
         - sudo ./gatherIntel.py
 """
-
 from datetime import datetime
-
-try:
-    import nmap
-except:
-    _sysERRMSG("ERROR: UNABLE TO IMPORT NMAP. PLEASE MAKE SURE IT IS INSTALLED")
-
 import os
 import platform
 import socket
-
-try:
-    import sqlite3
-except:
-    _sysERRMSG("ERROR: UNABLE TO IMPORT SQLite3. PLEASE MAKE SURE IT IS INSTALLED")
-
 import subprocess
 import sys
-
-try:
-    import targetObjects
-except:
-    _sysERRMSG("ERROR: UNABLE TO IMPORT targetObjects.py")
-
 import time
-
-try:
-    import whois
-except:
-    _sysERRMSG("ERROR: UNABLE TO  IMPORT WHOIS. PLEASE MAKE SURE IT IS INSTALLED")
 
 common_ports = {
         "http1" : 80,
@@ -87,6 +63,41 @@ common_ports = {
 
 targets = ['127.0.0.1']
 target = '127.0.0.1'
+
+def _importRequirements():
+    """
+    Function Name: _importRequirements
+    Description:
+        function to import all required libraries
+        and give error messages if they are not
+        installed.
+    Input(s):
+        None
+    Return(s):
+        None
+    """
+
+    try:
+        import nmap
+    except:
+        _sysERRMSG("ERROR: UNABLE TO IMPORT NMAP. PLEASE MAKE SURE IT IS INSTALLED")
+
+    try:
+        import sqlite3
+    except:
+        _sysERRMSG("ERROR: UNABLE TO IMPORT SQLite3. PLEASE MAKE SURE IT IS INSTALLED")
+
+    try:
+        import targetObjects
+    except:
+        _sysERRMSG("ERROR: UNABLE TO IMPORT targetObjects.py")
+
+    try:
+        import whois
+    except:
+        _sysERRMSG("ERROR: UNABLE TO  IMPORT WHOIS. PLEASE MAKE SURE IT IS INSTALLED")
+
+    return
 
 def addScan(conn,tgt,openPorts,tgtOS):
     """
@@ -264,8 +275,9 @@ def mainMenu():
     options = {
             "SCAN TARGET" : 1,
             "FINGERPRINT OS" : 2,
-            "QUICKSCAN RANGE" : 3,
-            "QUCKSCAN COMMON PORTS" : 4
+            "QUICKSCAN ALL" : 3,
+            "QUICKSCAN RANGE" : 4,
+            "QUCKSCAN COMMON PORTS" : 5
             }
 
     print("Menu Options:")
@@ -314,7 +326,7 @@ def scanCommon(tgt):
                 Currently this is not working and just throwing an exception.
                 """
                 if(sc_obj['status']['state'] != "up"):
-                    print("[!] {0} is DOWN... Returning...".format(tgt))
+                    _sysERRMSG("{0} is DOWN... Returning...".format(tgt))
                     return
 
                 print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
@@ -359,7 +371,7 @@ def scanCommon(tgt):
                     Currently this is not working and just throwing an exception.
                     """
                     if(not(sc_obj['status']['state'] == "up")):
-                        print("[!] {0} is DOWN... Returning...".format(t))
+                        _sysERRMSG("{0} is DOWN... Returning...".format(t))
                         continue
 
                     print("{0:^15}|".format(sc_obj['tcp'][val]['state']),end='')
@@ -388,7 +400,7 @@ def scanCommon(tgt):
 
     return
 
-def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
+def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False, __usrInp=True):
     """
     Function Name: _scanTARGET
     Inputs:
@@ -396,6 +408,7 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
         __portMIN - (optional) starting port
         __portMAX - (optional) ending port
         __idSVC - (optional) id open port service
+        __usrInp - (optional) whether to request user input for scan.
     Return Values:
         openPORTLIST - list of open ports from scan.
     Functionality:
@@ -404,10 +417,11 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
         target machine.  A summary of the scan will
         display after it has completed.
     Example:
-        oPorts = _scanTARGET()
-        oPorts = _scanTARGET(__portMIN=10)
-        oPorts = _scanTARGET(__portMAX=100)
-        oPorts = _scanTARGET(_portMIN=10,__portMAX=20)
+        oPorts = _scanTarget()
+        oPorts = _scanTarget(__portMIN=10)
+        oPorts = _scanTarget(__portMAX=100)
+        oPorts = _scanTarget(__portMIN=10,__portMAX=20)
+        oPorts = _scanTarget(__portMIN=10,__portMAX=50,__usrInp=False)
     """
     nPORTSOPEN = 0
     beginPORT = 1
@@ -415,31 +429,33 @@ def _scanTarget(tgtIP, __portMIN=1, __portMAX=1025, __idSVC=False):
     highestPORT = 65535
     openPORTLIST = []
     print("")
-    ps = input("Starting Port (leave blank for 1): ")
-    pe = input("Ending Port (leave blank for 1025): ")
 
-    """
-    Validate Port Start (ps) and Port End (pe)
-    """
-    if (ps != ""):
-        try:
-            ps = int(ps)
-            __portMIN = abs(ps)
-            if (__portMIN > highestPORT):
-                __portMIN = highestPORT
-                _sysINFMSG("Start Port Exceeds Valid Number. Truncated to {0}".format(highestPORT))
-        except ValueError:
-            _sysERRMSG("{0} Not A Valid Port. Start Port Remains {1}".format(ps, __portMIN))
+    if (__usrInp):
+        ps = input("Starting Port (leave blank for 1): ")
+        pe = input("Ending Port (leave blank for 1025): ")
 
-    if (pe != ""):
-        try:
-            pe = int(pe)
-            __portMAX = abs(pe)
-            if (__portMAX > highestPORT):
-                __portMAX = highestPORT
-                _sysINFMSG("End Port Exceeds Valid Number. Truncated to {0}".format(highestPORT))
-        except ValueError:
-            _sysERRMSG("{0} Not A Valid Port. Start Port Remains {1}".format(pe, __portMAX))
+        """
+        Validate Port Start (ps) and Port End (pe)
+        """
+        if (ps != ""):
+            try:
+                ps = int(ps)
+                __portMIN = abs(ps)
+                if (__portMIN > highestPORT):
+                    __portMIN = highestPORT
+                    _sysINFMSG("Start Port Exceeds Valid Number. Truncated to {0}".format(highestPORT))
+            except ValueError:
+                _sysERRMSG("{0} Not A Valid Port. Start Port Remains {1}".format(ps, __portMIN))
+
+        if (pe != ""):
+            try:
+                pe = int(pe)
+                __portMAX = abs(pe)
+                if (__portMAX > highestPORT):
+                    __portMAX = highestPORT
+                    _sysINFMSG("End Port Exceeds Valid Number. Truncated to {0}".format(highestPORT))
+            except ValueError:
+                _sysERRMSG("{0} Not A Valid Port. Start Port Remains {1}".format(pe, __portMAX))
 
     if (__portMIN > __portMAX):
         tmp = __portMAX
@@ -573,17 +589,25 @@ def _quickScanCommon(tgtIP, _usrInp = True):
 
     return openPORTLIST
 
-def _quickScanOpen(tgtIP):
+def _quickScanOpen(tgtIP, __returnFirst = None):
     """
     Function Name: _quickScanCommon
     Description:
         Do quick-scam (non-nmap) of all ports.
     Input(s):
         tgtIP - target IP address. List or string.
+        __returnFirst - whether or not to return the 1st open port. (optional)
     Return(s):
-        port - first open port found (if any).
+        port - first open port found (if any) or list of open ports.
         False - no open port found.
     """
+
+    if (__returnFirst is None):
+        __returnFirst = True
+    else:
+        __returnFirst = False
+
+    openPortList = []
 
     try:
         for port in range(65535):
@@ -591,9 +615,12 @@ def _quickScanOpen(tgtIP):
             sock.settimeout(0.05)
             response = sock.connect_ex((tgtIP,port+1))
             if (response == 0):
-                sock.close()
-                return port+1
-            sock.close()
+                if (__returnFirst == True):
+                    sock.close()
+                    return port+1
+                else:
+                    openPortList += port+1
+        sock.close()
     except KeyboardInterrupt:
         _sysINFMSG("CTRL+C Pressed. Ending Scan At Port {0}".format(port))
         sock.close()
@@ -602,7 +629,10 @@ def _quickScanOpen(tgtIP):
     except socket.error:
         _sysERRMSG("Could Not Connect To Target")
 
-    return False
+    if not(openPortList):
+        openPortList = False
+
+    return openPortList
 
 def _findHosts(tgtRouter = None):
     """
@@ -619,7 +649,7 @@ def _findHosts(tgtRouter = None):
     ipv6 = False
     
     if (tgtRouter is None):
-        tgtRouter = '192.168.1.1'
+        tgtRouter = '192.168.1.0'
     
     if (tgtRouter[-3:] == '/24'):
         tgtRouter = tgtRouter[:-3]
@@ -953,8 +983,8 @@ def _runDemo():
     _sysMSG("Start Scanning Functions Demo")
     _printCHAR('-',40)
     scanCommon(localhost) 
-    _quickScanCommon(localhost)
-    _scanTarget(localhost)
+    _quickScanCommon(localhost, _usrInp=False)
+    _scanTarget(localhost, __usrInp=False)
     return
 
 def main():
@@ -992,6 +1022,7 @@ def main():
 
     return
 
+_importRequirements()
 if ((os.getuid() != 0) and (os.name != 'nt')):
     lib_name = os.path.basename(__file__)
     _sysERRMSG("WARNING: NOT RUNNING AS SUDO OR ROOT. SOME FUNCTIONS FROM {0} MAY NOT WORK".format(lib_name))
