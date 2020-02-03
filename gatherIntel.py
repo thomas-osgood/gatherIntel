@@ -24,6 +24,25 @@ import socket
 import subprocess
 import sys
 import time
+try:
+    import nmap
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT NMAP. PLEASE MAKE SURE IT IS INSTALLED")
+
+try:
+    import sqlite3
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT SQLite3. PLEASE MAKE SURE IT IS INSTALLED")
+
+try:
+    import targetObjects
+except:
+    _sysERRMSG("ERROR: UNABLE TO IMPORT targetObjects.py")
+
+try:
+    import whois
+except:
+    _sysERRMSG("ERROR: UNABLE TO  IMPORT WHOIS. PLEASE MAKE SURE IT IS INSTALLED")
 
 common_ports = {
         "http1" : 80,
@@ -697,7 +716,7 @@ def getDomainInfo(domainName):
         _sysERRMSG("Incorrect domain type entered")
         return False
 
-    dInfo = whois.whois(domainName)
+    dInfo = whois.query(domainName)
     return dInfo
 
 def printDomainInfo(domainName):
@@ -716,7 +735,7 @@ def printDomainInfo(domainName):
     if (dInfo == False):
         return
 
-    for key,val in dInfo.items():
+    for key,val in dInfo.__dict__.items():
         print("{0:<15}: {1}".format(key.upper(), val))
 
     return
@@ -1022,7 +1041,7 @@ def main():
 
     return
 
-_importRequirements()
+#_importRequirements()
 if ((os.getuid() != 0) and (os.name != 'nt')):
     lib_name = os.path.basename(__file__)
     _sysERRMSG("WARNING: NOT RUNNING AS SUDO OR ROOT. SOME FUNCTIONS FROM {0} MAY NOT WORK".format(lib_name))
